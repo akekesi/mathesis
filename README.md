@@ -84,7 +84,7 @@ $ python pelita <player_1.py> <player_2.py>
 Attila Kékesi
 
 ## Acknowledgements
-- [TU Berlin Mathesis (Videospiel) [WiSe 2024/25]](https://isis.tu-berlin.de/course/view.php?id=41051).
+- [TU Berlin Mathesis (Videospiel) [WiSe 2024/25]](https://isis.tu-berlin.de/course/view.php?id=41051)
 - [Pelita](https://github.com/ASPP/pelita_template)
 
 ## License
