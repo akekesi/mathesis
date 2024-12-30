@@ -1,0 +1,12 @@
+# byte-compiled
+__pycache__/
+
+# environment
+.venv*
+
+# log
+*.log
+
+# test / coverage
+htmlcov/
+.coverage
