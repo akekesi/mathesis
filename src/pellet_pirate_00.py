@@ -1,3 +1,7 @@
+# deadlock:
+# --seed 3027016763252906255
+
+
 import copy
 import networkx as nx
 
@@ -6,6 +10,14 @@ TEAM_NAME = 'Pellet Pirates'
 BOT_1 = ["a", "x"]
 BOT_2 = ["b", "y"]
 DISTANCE = 3
+
+def init_state(state: dict) -> None:
+    state["bot_1"] = {
+        "position": [],
+    }
+    state["bot_2"] = {
+        "position": [],
+    }
 
 
 def get_shortest_path(graph: nx.Graph, source: tuple[int, int], targets: list[tuple[int, int]]) -> list[tuple[int, int]]:
@@ -36,7 +48,20 @@ def get_surrounding_coords(point: tuple[int, int], distance: int) -> list[tuple[
     return surrounding_coords
 
 
+def is_deadlock(state: dict, position_next: tuple[int, int]) -> bool:
+    n = 0
+    for position in state["bot_1"]["position"][-5:]:
+        if position == position_next:
+            n += 1
+        if n > 1:
+            return True
+    return False
+
+
 def move(bot, state):
+    if state == {}:
+        init_state(state)
+
     graph = bot.graph.copy()
     enemies = bot.enemy
 
@@ -57,12 +82,17 @@ def move(bot, state):
                     foods.remove(node_delete)
         shortes_path = get_shortest_path(graph=graph, source=bot.position, targets=foods)
         if shortes_path:
-            next_position = shortes_path[1]
+            position_next = shortes_path[1]
         else:
-            next_position = bot.random.choice(bot.legal_positions)
+            position_next = bot.random.choice(bot.legal_positions)
+        if is_deadlock(state=state, position_next=position_next):
+            print("deadlock")
+            # ???
+        state["bot_1"]["position"].append(position_next)
 
     # defender
     if bot.char in BOT_2:
+        # optional: if nothing to do try to collect pellet
         lenght = float("inf")
         enemies_attacker = [enemy for enemy in enemies if enemy.position in bot.homezone]
         for enemy in enemies_attacker:
@@ -84,10 +114,11 @@ def move(bot, state):
                     shortes_path = shortes_path_
 
         if len(shortes_path) < 2:
-            next_position = shortes_path[0]
+            position_next = shortes_path[0]
         else:
-            next_position = shortes_path[1]
-        if next_position not in bot.homezone:
-            next_position = shortes_path[0]
+            position_next = shortes_path[1]
+        if position_next not in bot.homezone:
+            position_next = shortes_path[0]
+        state["bot_2"]["position"].append(position_next)
 
-    return next_position
+    return position_next
