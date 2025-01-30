@@ -62,7 +62,7 @@ def move(bot, state):
                 path_length = float("inf")
                 for pellet in bot.enemy[0].food:
                     path_to_pellet = networkx.shortest_path(G=bot.graph, source=bot.position, target=pellet)
-                    if len(path_to_pellet) < path_length and path_to_pellet[1] in safe_positions: # TODO-?: Is path always longer than 1? (if the pellet is moved to the bot's position)
+                    if len(path_to_pellet) < path_length and path_to_pellet[1] in safe_positions:
                         next_pos_1 = path_to_pellet[1]
                         path_length = len(path_to_pellet)
                 
@@ -86,7 +86,7 @@ def move(bot, state):
                 path_length = float("inf")
                 for pellet in bot.enemy[0].food:
                     path_to_pellet = networkx.shortest_path(G=bot.graph, source=bot.position, target=pellet)
-                    if len(path_to_pellet) < path_length and path_to_pellet[1] in safe_positions: # TODO-?: Is path always longer than 1? (if the pellet is moved to the bot's position)
+                    if len(path_to_pellet) < path_length and path_to_pellet[1] in safe_positions:
                         next_pos_1 = path_to_pellet[1]
                         path_length = len(path_to_pellet)
 
@@ -113,10 +113,10 @@ def move(bot, state):
         if bot_in_homezone and enemies_pos_homezone:
             closest_enemy = min(enemies_pos_homezone, key=lambda pos: distance_theo(pos1=bot.position, pos2=pos))
             path_to_enemy = networkx.shortest_path(G=graph_homezone, source=bot.position, target=closest_enemy)
-            next_pos_2 = path_to_enemy[1] if len(path_to_enemy) > 1 else bot.position# TODO-?: Is path always longer than 1?
+            next_pos_2 = path_to_enemy[1] if len(path_to_enemy) > 1 else bot.position
 
         # middle position of homezone
-        column_middle = [pos for pos in bot.graph if pos[0] == 15] 
+        column_middle = [pos for pos in graph_homezone if pos[0] in [15, 16]]
         zu_mitte = networkx.shortest_path(graph_homezone, bot.position, column_middle[len(column_middle) // 2])
         next_pos_2_to_middle = zu_mitte[1] if len(zu_mitte) > 1 else bot.position
 
