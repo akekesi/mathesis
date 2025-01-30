@@ -31,7 +31,7 @@ def move(bot, state):
     # define if bot is in homezone
     bot_in_homezone = bot.position in bot.homezone
 
-    # strategy of the 1. bot (bot-a or bor-x)
+    # strategy of the 1. bot (bot-a or bot-x)
     if bot.char in ["a", "x"]:
         next_pos_1 = None
 
@@ -102,7 +102,7 @@ def move(bot, state):
                 safe_positions = [pos for pos in bot.legal_positions if pos in bot.homezone and pos not in enemies_pos]
                 next_pos = bot.random.choice(safe_positions) if safe_positions else next_pos
 
-    # strategy of the 2. bot (bot-b or bor-y)
+    # strategy of the 2. bot (bot-b or bot-y)
     elif bot.char in ["b", "y"]:
         next_pos_2 = None
 
