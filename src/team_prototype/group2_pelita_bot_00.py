@@ -43,7 +43,7 @@ def move(bot, state):
 
             if distance_theo(pos1=bot.position, pos2=closest_enemy) <= SAFE_DISTANCE_HOMEZONE:
                 path_to_enemy = networkx.shortest_path(G=bot.graph, source=bot.position, target=closest_enemy)
-                next_pos_1 = path_to_enemy[1] if len(path_to_enemy) > 1 else bot.position # TODO-?: Is if-else necessary?
+                next_pos_1 = path_to_enemy[1] if len(path_to_enemy) > 1 else bot.position
 
         # bot is in enemyzone or there is no catchable enemy in homezone
         if not next_pos_1:
@@ -110,16 +110,22 @@ def move(bot, state):
                 graph_homezone.remove_node(pos)
 
         # bot is in homezone and there is enemy in homezone
-        if bot_in_homezone and enemies_pos_homezone:
-            closest_enemy = min(enemies_pos_homezone, key=lambda pos: distance_theo(pos1=bot.position, pos2=pos))
-            path_to_enemy = networkx.shortest_path(G=graph_homezone, source=bot.position, target=closest_enemy)
-            next_pos_2 = path_to_enemy[1] if len(path_to_enemy) > 1 else bot.position
+        if bot_in_homezone:
+            if enemies_pos_homezone:
+                closest_enemy = min(enemies_pos_homezone, key=lambda pos: distance_theo(pos1=bot.position, pos2=pos))
+                path_to_enemy = networkx.shortest_path(G=graph_homezone, source=bot.position, target=closest_enemy)
+                next_pos_2 = path_to_enemy[1] if len(path_to_enemy) > 1 else bot.position
+            else:
+                closest_enemy = min(enemies_pos, key=lambda pos: distance_theo(pos1=bot.position, pos2=pos))
+                path_to_enemy = networkx.shortest_path(G=bot.graph, source=bot.position, target=closest_enemy)
+                next_pos_2 = path_to_enemy[1] if len(path_to_enemy) > 1 else bot.position
 
-        # middle position of homezone
-        column_middle = [pos for pos in graph_homezone if pos[0] in [15, 16]]
-        zu_mitte = networkx.shortest_path(graph_homezone, bot.position, column_middle[len(column_middle) // 2])
-        next_pos_2_to_middle = zu_mitte[1] if len(zu_mitte) > 1 else bot.position
+        # # middle position of homezone
+        if next_pos_2 not in graph_homezone:
+            column_middle = [pos for pos in graph_homezone if pos[0] in [15, 16]]
+            zu_mitte = networkx.shortest_path(graph_homezone, bot.position, column_middle[len(column_middle) // 2])
+            next_pos_2 = zu_mitte[1] if len(zu_mitte) > 1 else bot.position
 
-        next_pos = next_pos_2 if next_pos_2 else next_pos_2_to_middle
+        next_pos = next_pos_2
 
     return next_pos
