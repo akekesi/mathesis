@@ -89,7 +89,11 @@ def move(bot, state):
                     if len(path_to_pellet) < path_length and path_to_pellet[1] in safe_positions:
                         next_pos_1 = path_to_pellet[1]
                         path_length = len(path_to_pellet)
-
+                    else:
+                        safe_positions = [pos for pos in safe_positions if pos != bot.position]
+                        if safe_positions:
+                            next_pos_1 = bot.random.choice(safe_positions)
+    
         next_pos = next_pos_1 if next_pos_1 else bot.position
 
         # deadlock
