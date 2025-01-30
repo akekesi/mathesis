@@ -1,8 +1,5 @@
-# TODO: avoid suicide where randomchoice is used!
-# TODO: defender's shortest path to the enemy instead of waiting in the middle point (even if enemy is not in the homezone)
-# TODO: defender's shortest path between enemy and pellet
+# TODO: defender's shortest path between enemy and pellet instead of follow enemy
 # TODO-?: Which distance_*() function should be used?
-# TODO-?: Is path always longer than 1? (if the pellet is moved to the bot's position)
 
 
 import networkx
@@ -11,8 +8,8 @@ import networkx
 TEAM_NAME = "group2 pelita bot 00"
 SAFE_DISTANCE_ENEMYZONE = 3  # minimum distance to opponents in enemyzone
 SAFE_DISTANCE_HOMEZONE = 2   # minimum distance to opponents in homezone # TODO: test with 2 or 1
-DEADLOCK_LAST_STEPS = 6
-DEADLOCK_REPETITION = 3
+DEADLOCK_LAST_STEPS = 6      # number of last steps to check for deadlock
+DEADLOCK_REPETITION = 3      # number of repetitions to detect deadlock
 
 
 def distance_theo(pos1, pos2):
@@ -26,10 +23,12 @@ def distance_real(graph, pos1, pos2):
 
 
 def move(bot, state):
+    # define enemies and their positions
     enemies = bot.enemy
     enemies_pos = [enemy.position for enemy in enemies]
     enemies_pos_homezone = [enemy_pos for enemy_pos in enemies_pos if enemy_pos in bot.homezone]
 
+    # define if bot is in homezone
     bot_in_homezone = bot.position in bot.homezone
 
     # strategy of the 1. bot (bot-a or bor-x)
@@ -41,6 +40,7 @@ def move(bot, state):
         if bot_in_homezone and enemies_pos_homezone:
             closest_enemy = min(enemies_pos_homezone, key=lambda pos: distance_theo(pos1=bot.position, pos2=pos))
 
+            # distance to closest enemy is less than SAFE_DISTANCE_HOMEZONE
             if distance_theo(pos1=bot.position, pos2=closest_enemy) <= SAFE_DISTANCE_HOMEZONE:
                 path_to_enemy = networkx.shortest_path(G=bot.graph, source=bot.position, target=closest_enemy)
                 next_pos_1 = path_to_enemy[1] if len(path_to_enemy) > 1 else bot.position
@@ -101,7 +101,6 @@ def move(bot, state):
             if len([pos for pos in bot.track[-DEADLOCK_LAST_STEPS:] if pos == next_pos]) >= DEADLOCK_REPETITION:
                 safe_positions = [pos for pos in bot.legal_positions if pos in bot.homezone and pos not in enemies_pos]
                 next_pos = bot.random.choice(safe_positions) if safe_positions else next_pos
-                # TODO-DEADLOCK:  pelita group2_pelita_bot_00.py demo06_switching_bots.py --seed 3245525151750523456
 
     # strategy of the 2. bot (bot-b or bor-y)
     elif bot.char in ["b", "y"]:
