@@ -109,18 +109,20 @@ def move(bot, state):
             if pos not in bot.homezone:
                 graph_homezone.remove_node(pos)
 
-        # bot is in homezone and there is enemy in homezone
+        # bot is in homezone
         if bot_in_homezone:
+            # there is enemy in homezone
             if enemies_pos_homezone:
                 closest_enemy = min(enemies_pos_homezone, key=lambda pos: distance_theo(pos1=bot.position, pos2=pos))
                 path_to_enemy = networkx.shortest_path(G=graph_homezone, source=bot.position, target=closest_enemy)
                 next_pos_2 = path_to_enemy[1] if len(path_to_enemy) > 1 else bot.position
+            # there is no enemy in homezone
             else:
                 closest_enemy = min(enemies_pos, key=lambda pos: distance_theo(pos1=bot.position, pos2=pos))
                 path_to_enemy = networkx.shortest_path(G=bot.graph, source=bot.position, target=closest_enemy)
                 next_pos_2 = path_to_enemy[1] if len(path_to_enemy) > 1 else bot.position
 
-        # # middle position of homezone
+        # middle position of border in homezone
         if next_pos_2 not in graph_homezone:
             column_middle = [pos for pos in graph_homezone if pos[0] in [15, 16]]
             zu_mitte = networkx.shortest_path(graph_homezone, bot.position, column_middle[len(column_middle) // 2])
