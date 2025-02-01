@@ -1,3 +1,70 @@
+"""
+Allgemeine Eindrücke
+Struktur & Lesbarkeit:  Dein Code ist sauber strukturiert, gut kommentiert und verständlich.
+                        Die Rollen von Angreifer- und Verteidiger-Bot sind klar definiert.
+Modularität:            Die Funktionen sind sinnvoll aufgeteilt, was Wartung und Erweiterbarkeit erleichtert.
+Effizienz:              Es gibt einige Optimierungsmöglichkeiten, insbesondere im Umgang mit safe_graph und der Suche nach Nahrung.
+
+
+
+Positives
+✅ Klare Struktur & Modularität
+- Die Trennung zwischen attack und defend ist klar und in move() gut umgesetzt.
+- Jede Funktion hat eine klar definierte Aufgabe.
+
+✅ Fehlertoleranz & Fallbacks
+- Falls ein direkter Weg nicht gefunden wird, gibt es immer ein alternatives Verhalten (z. B. try_random_move_in_safe_graph() oder zufällige Bewegung).
+
+✅ Vermeidung von „Ping-Pong“-Bewegungen
+- Der Code speichert vorherige Positionen und vermeidet es, direkt zum letzten Feld zurückzukehren. Dies verbessert die Effizienz der Bewegung.
+
+✅ Dynamische Gefahrenbewertung
+- create_safe_graph() entfernt feindliche Positionen aus dem Graphen, um sichere Pfade zu gewährleisten.
+
+
+
+Verbesserungspotenzial & Optimierungsvorschläge
+❌ safe_graph wird mehrfach unnötig neu berechnet
+- create_safe_graph(bot) wird in mehreren Funktionen redundant aufgerufen, z. B. in try_random_move_in_safe_graph() und bfs_find_food().
+🔹 Lösung: Berechne es einmal in move() und übergebe es als Argument.
+    def move(bot, state):
+        if not state:
+            state.update(init_state(bot))
+
+        safe_graph = create_safe_graph(bot)  # Nur einmal berechnen
+
+❌ Redundante deque-Importe
+- In bfs_find_food() wird from collections import deque erneut importiert, obwohl es oben bereits importiert wurde.
+🔹 Lösung: Entferne den zweiten Import.
+
+❌ Unbestimmter Rückgabewert von get_nearest_enemy_in_homezone()
+- Aktuell gibst du das erste bot.enemy zurück und nicht unbeding das nächste.
+🔹 Lösung: Direkt das kleinste Element per min() finden.
+    def get_nearest_enemy_in_homezone(bot):
+        return min(
+            (enemy for enemy in bot.enemy if not enemy.is_noisy and enemy.position in bot.homezone),
+            key=lambda e: abs(bot.position[0] - e.position[0]) + abs(bot.position[1] - e.position[1]),
+            default=None
+        )
+        
+❌ bfs_find_food() könnte effizienter sein
+- sate ist nicht in Verwendung und könnte entfernt werden.
+- Die Nahrungsliste all_food wird überprüft, bevor BFS überhaupt startet. Falls leer, könnte die Funktion sofort return None, None zurückgeben.
+🔹 Lösung: Frühzeitiges return für bessere Lesbarkeit.
+    def bfs_find_food(bot, state):
+        safe_graph = create_safe_graph(bot)
+        if bot.position not in safe_graph or not bot.enemy or not bot.enemy[0].food:
+            return None, None  # Frühes Exit
+
+
+
+Fazit
+Gesamtbewertung: 9/10 ⭐⭐⭐⭐⭐⭐⭐⭐⭐☆
+Dein Code ist insgesamt sehr solide, gut strukturiert und mit sinnvollen Sicherheitsmechanismen versehen.
+Neben dem unbestimmten Rückgabewert von get_nearest_enemy_in_homezone() gibt es nur wenige Optimierungsmöglichkeiten.
+Mit den vorgeschlagenen Änderungen könntest du die Effizienz und Lesbarkeit noch weiter verbessern! 🚀
+"""
+
 import networkx as nx
 import random
 from collections import deque
@@ -82,7 +149,7 @@ def try_random_move_in_safe_graph(bot, safe_graph, state):
     return next_move
 
 def move_to_target(bot, target, state):
-    safe_graph = create_safe_graph(bot)
+    safe_graph = create_safe_graph(bot) # TODO: safe_graph could be passed as argument
     if bot.position in safe_graph and target in safe_graph:
         try:
             path = nx.shortest_path(safe_graph, bot.position, target)
@@ -98,18 +165,18 @@ def move_to_target(bot, target, state):
             pass
     return try_random_move_in_safe_graph(bot, safe_graph, state)
 
-def bfs_find_food(bot, state):
-    safe_graph = create_safe_graph(bot)
-    if bot.position not in safe_graph:
+def bfs_find_food(bot, state): # TODO: state is not used
+    safe_graph = create_safe_graph(bot) # TODO: safe_graph could be passed as argument
+    if bot.position not in safe_graph: # TODO: collect all early returns
         return (None, None)
 
-    if not bot.enemy or not bot.enemy[0].food:
+    if not bot.enemy or not bot.enemy[0].food: # TODO: collect all early returns
         return (None, None)
     all_food = bot.enemy[0].food
-    if not all_food:
+    if not all_food: # TODO: collect all early returns
         return (None, None)
 
-    from collections import deque
+    from collections import deque # TODO: redundant import
     visited = set([bot.position])
     queue = deque([[bot.position]])
 
@@ -136,7 +203,7 @@ def get_nearest_enemy_in_homezone(bot):
     in_home = [enemy for enemy in bot.enemy if (not enemy.is_noisy) and (enemy.position in bot.homezone)]
     if not in_home:
         return None
-    return in_home[0]
+    return in_home[0] # TODO: return min(...)
 
 def move(bot, state):
     if not state:
@@ -157,7 +224,7 @@ def move(bot, state):
             return next_step
 
         # Fallback: zufällige Bewegung im safe_graph
-        fallback = try_random_move_in_safe_graph(bot, create_safe_graph(bot), state)
+        fallback = try_random_move_in_safe_graph(bot, create_safe_graph(bot), state) # TODO: safe_graph could be passed as argument
         if fallback:
             bot.say("Angriff: Keine Nahrung? Bewege mich zufällig!")
             return fallback
@@ -190,7 +257,7 @@ def move(bot, state):
                 return next_step
 
         # 3) Fallback: Zufallszug
-        fallback = try_random_move_in_safe_graph(bot, create_safe_graph(bot), state)
+        fallback = try_random_move_in_safe_graph(bot, create_safe_graph(bot), state) # TODO: safe_graph could be passed as argument 
         if fallback:
             bot.say("Verteidiger: Keine Ziele, laufe zufällig!")
             return fallback
